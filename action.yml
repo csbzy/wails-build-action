@@ -129,8 +129,12 @@ runs:
       run: go install github.com/wailsapp/wails/v2/cmd/wails@${{inputs.wails-version}}
       shell: bash
     - name: Install Linux Wails deps
+      if: inputs.build == 'true' && runner.os == 'Linux' && inputs.build-platform == 'linux/arm64'
+      run: sudo dpkg --add-architecture arm64 && sudo apt-get update && sudo apt-get install libc6-dev-arm64-cross libgtk-3-dev:arm64 libwebkit2gtk-4.0-dev:arm64 gcc-aarch64-linux-gnu pkg-config
+      shell: bash
+    - name: Install Linux Wails deps
       if: inputs.build == 'true' && runner.os == 'Linux'
-      run: sudo apt-get update && sudo apt-get install libgtk-3-0 libwebkit2gtk-4.0-dev gcc-aarch64-linux-gnu
+      run: sudo apt-get update && sudo apt-get install libgtk-3-0 libwebkit2gtk-4.0-dev gcc-aarch64-linux-gnu pkg-config
       shell: bash
     - name: Install macOS Wails deps
       if: runner.os == 'macOS'
@@ -145,7 +149,7 @@ runs:
     - name: Build App
       if: inputs.build == 'true' &&  runner.os == 'Linux' && inputs.build-platform == 'linux/arm64'
       working-directory: ${{ inputs.app-working-directory }}
-      run: CGO_ENABLED=1 GOARCH=arm64 CC=aarch64-linux-gnu-gcc wails build  -skipbindings --platform ${{inputs.build-platform}} -webview2 ${{inputs.wails-build-webview2}} -o ${{inputs.build-name}}
+      run: PKG_CONFIG_PATH=/usr/lib/aarch64-linux-gnu/pkgconfig CGO_ENABLED=1 GOARCH=arm64 CC=aarch64-linux-gnu-gcc wails build  -skipbindings --platform ${{inputs.build-platform}} -webview2 ${{inputs.wails-build-webview2}} -o ${{inputs.build-name}}
       shell: bash
     - name: Build App
       if: inputs.build == 'true' &&  runner.os == 'Linux'
